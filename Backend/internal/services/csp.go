@@ -1,9 +1,6 @@
 package services
 
-type Sudokuboard struct {
-}
-
-// Given a
+// Solves a non-solved sudoku board and returns it
 func CSP() {
 
 }
