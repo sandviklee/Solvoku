@@ -5,12 +5,13 @@ package services
 import (
 	"errors"
 	mapset "github.com/deckarep/golang-set/v2"
+	"strconv"
 )
 
 // Public
 
 type Board struct {
-	numbers [9][9]int
+	numbers [][]int
 }
 
 type SudokuCtx struct {
@@ -20,8 +21,42 @@ type SudokuCtx struct {
 	constraints int
 }
 
+// Convert to String function for the Board struct to represent a Sudoku Board.
+func (board Board) String() (boardString string) {
+	i := 0
+	for i < len(board.numbers) {
+		j := 0
+		if i%3 == 0 && i != 0 {
+			boardString += "- - - - - - - - - - -\n"
+		}
+		for j < len(board.numbers[i]) {
+			if j%3 == 0 && j != 0 {
+				boardString += "| "
+			}
+			boardString += strconv.Itoa(board.numbers[i][j]) + " "
+			j++
+		}
+
+		boardString += "\n"
+		i++
+	}
+	return
+}
+
 func InitSudokuCtx(board *Board) (sudokuCtx *SudokuCtx) {
 	sudokuCtx.Board = *board
+	_, err := initSudokuVariables(sudokuCtx)
+
+	if err != nil {
+		return nil
+	}
+
+	_, err = initSudokuDomains(sudokuCtx)
+
+	if err != nil {
+		return nil
+	}
+
 	return
 }
 
