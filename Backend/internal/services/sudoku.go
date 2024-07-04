@@ -4,7 +4,6 @@ package services
 
 import (
 	"errors"
-	mapset "github.com/deckarep/golang-set/v2"
 	"strconv"
 )
 
@@ -17,7 +16,7 @@ type Board struct {
 type SudokuCtx struct {
 	board       Board
 	variables   []variable
-	domains     map[variable]mapset.Set[int]
+	domains     map[variable][]int
 	constraints int
 }
 
@@ -43,19 +42,14 @@ func (board Board) String() (boardString string) {
 	return
 }
 
-func InitSudokuCtx(board *Board) (sudokuCtx *SudokuCtx) {
-	sudokuCtx.board = *board
-	_, err := initSudokuVariables(sudokuCtx)
+func InitSudokuCtx(board Board) (sudokuCtx SudokuCtx, err error) {
+	sudokuCtx.board = board
 
-	if err != nil {
-		return nil
+	if len(board.numbers) <= 0 {
+		return sudokuCtx, errors.New("Board is empty")
 	}
 
-	_, err = initSudokuDomains(sudokuCtx)
-
-	if err != nil {
-		return nil
-	}
+	sudokuCtx.initSudokuVariables()
 
 	return
 }
@@ -67,11 +61,9 @@ type variable struct {
 }
 
 // Initializes Variables for a Sudoku Board and sets it in the SudokuCtx and returns
-func initSudokuVariables(sudokuCtx *SudokuCtx) (variables []variable, err error) {
-	if len(sudokuCtx.board.numbers) == 0 {
-		return variables, errors.New("SudokuCtx not initialized.")
-	}
-
+// Basically a Setter...
+func (sudokuCtx *SudokuCtx) initSudokuVariables() {
+	variables := make([]variable, 0)
 	maxCells := 9
 	for i := 0; i < maxCells; i++ {
 		for j := 0; j < maxCells; j++ {
@@ -80,12 +72,11 @@ func initSudokuVariables(sudokuCtx *SudokuCtx) (variables []variable, err error)
 	}
 
 	sudokuCtx.variables = variables
-	return
 }
 
 // Initializes Domains for Sudoku Board and sets it in the SudokuCtx and returns
 // Depends on initialization of variable beforehand
-func initSudokuDomains(sudokuCtx *SudokuCtx) (domains map[variable]mapset.Set[int], err error) {
+func (sudokuCtx *SudokuCtx) initSudokuDomains() (domains map[variable][]int, err error) {
 	if len(sudokuCtx.board.numbers) == 0 {
 		return domains, errors.New("SudokuCtx not initialized.")
 	}
@@ -95,7 +86,7 @@ func initSudokuDomains(sudokuCtx *SudokuCtx) (domains map[variable]mapset.Set[in
 	}
 
 	for _, position := range sudokuCtx.variables {
-		domains[position] = mapset.NewSet[int]()
+		domains[position] = make([]int, 0)
 	}
 
 	for i, row := range sudokuCtx.board.numbers {
@@ -103,12 +94,12 @@ func initSudokuDomains(sudokuCtx *SudokuCtx) (domains map[variable]mapset.Set[in
 			position := variable{i, j}
 
 			if cell != 0 {
-				domains[position].Add(cell)
+				domains[position] = append(domains[position], cell)
 				continue
 			}
 
 			for k := 1; k < 10; k++ {
-				domains[position].Add(k)
+				domains[position] = append(domains[position], k)
 			}
 
 		}
