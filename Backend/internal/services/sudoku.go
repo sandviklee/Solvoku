@@ -15,7 +15,7 @@ type Board struct {
 }
 
 type SudokuCtx struct {
-	Board       Board
+	board       Board
 	variables   []variable
 	domains     map[variable]mapset.Set[int]
 	constraints int
@@ -44,7 +44,7 @@ func (board Board) String() (boardString string) {
 }
 
 func InitSudokuCtx(board *Board) (sudokuCtx *SudokuCtx) {
-	sudokuCtx.Board = *board
+	sudokuCtx.board = *board
 	_, err := initSudokuVariables(sudokuCtx)
 
 	if err != nil {
@@ -68,7 +68,7 @@ type variable struct {
 
 // Initializes Variables for a Sudoku Board and sets it in the SudokuCtx and returns
 func initSudokuVariables(sudokuCtx *SudokuCtx) (variables []variable, err error) {
-	if len(sudokuCtx.Board.numbers) == 0 {
+	if len(sudokuCtx.board.numbers) == 0 {
 		return variables, errors.New("SudokuCtx not initialized.")
 	}
 
@@ -86,7 +86,7 @@ func initSudokuVariables(sudokuCtx *SudokuCtx) (variables []variable, err error)
 // Initializes Domains for Sudoku Board and sets it in the SudokuCtx and returns
 // Depends on initialization of variable beforehand
 func initSudokuDomains(sudokuCtx *SudokuCtx) (domains map[variable]mapset.Set[int], err error) {
-	if len(sudokuCtx.Board.numbers) == 0 {
+	if len(sudokuCtx.board.numbers) == 0 {
 		return domains, errors.New("SudokuCtx not initialized.")
 	}
 
@@ -98,7 +98,7 @@ func initSudokuDomains(sudokuCtx *SudokuCtx) (domains map[variable]mapset.Set[in
 		domains[position] = mapset.NewSet[int]()
 	}
 
-	for i, row := range sudokuCtx.Board.numbers {
+	for i, row := range sudokuCtx.board.numbers {
 		for j, cell := range row {
 			position := variable{i, j}
 
