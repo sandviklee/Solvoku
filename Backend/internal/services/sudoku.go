@@ -20,8 +20,13 @@ type SudokuCtx struct {
 	constraints int
 }
 
+// SetNumbers Setter for Board
+func (board *Board) SetNumbers(numbers [][]int) {
+	board.numbers = numbers
+}
+
 // Convert to String function for the Board struct to represent a Sudoku Board.
-func (board Board) String() (boardString string) {
+func (board *Board) String() (boardString string) {
 	i := 0
 	for i < len(board.numbers) {
 		j := 0
@@ -46,10 +51,11 @@ func InitSudokuCtx(board Board) (sudokuCtx SudokuCtx, err error) {
 	sudokuCtx.board = board
 
 	if len(board.numbers) <= 0 {
-		return sudokuCtx, errors.New("Board is empty")
+		return sudokuCtx, errors.New("board is empty")
 	}
 
 	sudokuCtx.initSudokuVariables()
+	sudokuCtx.initSudokuDomains()
 
 	return
 }
@@ -60,7 +66,7 @@ type variable struct {
 	a, b interface{}
 }
 
-// Initializes Variables for a Sudoku Board and sets it in the SudokuCtx and returns
+// Initializes Variables for a Sudoku Board and sets it in the SudokuCtx
 // Basically a Setter...
 func (sudokuCtx *SudokuCtx) initSudokuVariables() {
 	variables := make([]variable, 0)
@@ -74,16 +80,10 @@ func (sudokuCtx *SudokuCtx) initSudokuVariables() {
 	sudokuCtx.variables = variables
 }
 
-// Initializes Domains for Sudoku Board and sets it in the SudokuCtx and returns
+// Initializes Domains for Sudoku Board and sets it in the SudokuCtx
 // Depends on initialization of variable beforehand
-func (sudokuCtx *SudokuCtx) initSudokuDomains() (domains map[variable][]int, err error) {
-	if len(sudokuCtx.board.numbers) == 0 {
-		return domains, errors.New("SudokuCtx not initialized.")
-	}
-
-	if sudokuCtx.variables == nil {
-		return domains, errors.New("Variables not initialized")
-	}
+func (sudokuCtx *SudokuCtx) initSudokuDomains() {
+	domains := make(map[variable][]int)
 
 	for _, position := range sudokuCtx.variables {
 		domains[position] = make([]int, 0)
@@ -106,6 +106,37 @@ func (sudokuCtx *SudokuCtx) initSudokuDomains() (domains map[variable][]int, err
 	}
 
 	sudokuCtx.domains = domains
-	return
+}
+
+// Initializes the Constraints for Sudoku Board and sets it in the SudokuCtx
+func (sudokuCtx *SudokuCtx) initSudokuConstraints(variables []variable) {
+	constraints := make(map[variable][]variable)
+
+	for i := range variables {
+		addConstraints(i, constraints)
+	}
+
+}
+
+func addConstraints(v variable, constraints map[variable][]variable) {
+	vA := v.a.(int)
+	vB := v.b.(int)
+	for i := 0; i < 9; i++ {
+		if i != vA {
+			constraints[v] = append(constraints[v], variable{i, vB})
+		}
+		if i != vB {
+			constraints[v] = append(constraints[v], variable{vA, i})
+		}
+	}
+	subI, subJ := vA/3, vB/3
+	for i := subI * 3; i < (subI+1)*3; i++ {
+		for j := subJ * 3; j < (subJ+1)*3; j++ {
+			vN := variable{i, j}
+			if v != vN {
+				constraints[v] = append(constraints[v], vN)
+			}
+		}
+	}
 
 }
