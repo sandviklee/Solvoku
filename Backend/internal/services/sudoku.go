@@ -7,17 +7,19 @@ import (
 	"strconv"
 )
 
-// Public
-
 type Board struct {
 	numbers [][]int
 }
 
-type SudokuCtx struct {
+type variable struct {
+	a, b int
+}
+
+type sudokuCtx struct {
 	board       Board
 	variables   []variable
 	domains     map[variable][]int
-	constraints int
+	constraints map[variable][]variable
 }
 
 // SetNumbers Setter for Board
@@ -47,28 +49,38 @@ func (board *Board) String() (boardString string) {
 	return
 }
 
-func InitSudokuCtx(board Board) (sudokuCtx SudokuCtx, err error) {
-	sudokuCtx.board = board
+// Transforms the sudoku solution into a Board
+func TransformSolutionToBoard(solution map[variable]int) (board Board) {
+	var numbers [][]int
 
-	if len(board.numbers) <= 0 {
-		return sudokuCtx, errors.New("board is empty")
+	for i := 0; i < 9; i++ {
+		numbers = append(numbers, make([]int, 9))
 	}
 
-	sudokuCtx.initSudokuVariables()
-	sudokuCtx.initSudokuDomains()
+	for key, value := range solution {
+		numbers[key.a][key.b] = value
+	}
+	board.SetNumbers(numbers)
+	return
+}
+
+func InitSudokuCtx(board Board) (ctx sudokuCtx, err error) {
+	ctx.board = board
+
+	if len(board.numbers) <= 0 {
+		return ctx, errors.New("board is empty")
+	}
+
+	ctx.initSudokuVariables()
+	ctx.initSudokuDomains()
+	ctx.initSudokuConstraints()
 
 	return
 }
 
-// Private
-
-type variable struct {
-	a, b interface{}
-}
-
 // Initializes Variables for a Sudoku Board and sets it in the SudokuCtx
 // Basically a Setter...
-func (sudokuCtx *SudokuCtx) initSudokuVariables() {
+func (ctx *sudokuCtx) initSudokuVariables() {
 	variables := make([]variable, 0)
 	maxCells := 9
 	for i := 0; i < maxCells; i++ {
@@ -77,19 +89,19 @@ func (sudokuCtx *SudokuCtx) initSudokuVariables() {
 		}
 	}
 
-	sudokuCtx.variables = variables
+	ctx.variables = variables
 }
 
 // Initializes Domains for Sudoku Board and sets it in the SudokuCtx
 // Depends on initialization of variable beforehand
-func (sudokuCtx *SudokuCtx) initSudokuDomains() {
+func (ctx *sudokuCtx) initSudokuDomains() {
 	domains := make(map[variable][]int)
 
-	for _, position := range sudokuCtx.variables {
+	for _, position := range ctx.variables {
 		domains[position] = make([]int, 0)
 	}
 
-	for i, row := range sudokuCtx.board.numbers {
+	for i, row := range ctx.board.numbers {
 		for j, cell := range row {
 			position := variable{i, j}
 
@@ -105,22 +117,27 @@ func (sudokuCtx *SudokuCtx) initSudokuDomains() {
 		}
 	}
 
-	sudokuCtx.domains = domains
+	ctx.domains = domains
 }
 
 // Initializes the Constraints for Sudoku Board and sets it in the SudokuCtx
-func (sudokuCtx *SudokuCtx) initSudokuConstraints(variables []variable) {
+func (ctx *sudokuCtx) initSudokuConstraints() {
 	constraints := make(map[variable][]variable)
 
-	for i := range variables {
-		addConstraints(i, constraints)
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			addConstraints(variable{i, j}, constraints)
+		}
 	}
+
+	ctx.constraints = constraints
 
 }
 
+// Helper function to add the constraints
 func addConstraints(v variable, constraints map[variable][]variable) {
-	vA := v.a.(int)
-	vB := v.b.(int)
+	vA := v.a
+	vB := v.b
 	for i := 0; i < 9; i++ {
 		if i != vA {
 			constraints[v] = append(constraints[v], variable{i, vB})
