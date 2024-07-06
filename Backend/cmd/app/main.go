@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sandviklee/solvoku/internal/app"
+	"time"
 )
 
 func main() {
-	/*	sudokuTestBoard := [][]int{{5, 3, 0, 0, 7, 0, 0, 0, 0}, {6, 0, 0, 1, 9, 5, 0, 0, 0}, {0, 9, 8, 0, 0, 0, 0, 6, 0}, {8, 0, 0, 0, 6, 0, 0, 0, 3}, {4, 0, 0, 8, 0, 3, 0, 0, 1}, {7, 0, 0, 0, 2, 0, 0, 0, 6}, {0, 6, 0, 0, 0, 0, 2, 8, 0}, {0, 0, 0, 4, 1, 9, 0, 0, 5}, {0, 0, 0, 0, 8, 0, 0, 0, 0}}
-		board := services.Board{sudokuTestBoard}
-		fmt.Println(board.String())*/
-	app.Initialize()
+	start := time.Now()
+	app.Run()
+	t := time.Now()
+	elapsed := t.Sub(start)
+	fmt.Printf("%fs was the time it took to solve this Sudoku.", elapsed.Seconds())
 }
