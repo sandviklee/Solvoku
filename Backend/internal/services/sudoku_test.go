@@ -34,12 +34,11 @@ func (suite *SudokuTestSuite) TestInitSudokuCtx() {
 	assert.Equal(suite.T(), sudokuTestDomains, sudokuCtx.domains, "Domains were not initialized correctly")
 
 	// Test Initialization of Constraints
-	/*
-		sudokuTestConstraints := TestConstraints
-		assert.Equal(suite.T(), sudokuTestConstraints, sudokuCtx.constraints, "Constraints were not initialized correctly")
-	*/
+	sudokuTestConstraints := TestConstraints
+	assert.Equal(suite.T(), sudokuTestConstraints, sudokuCtx.constraints, "Constraints were not initialized correctly")
 }
 
 func TestSudokuTestSuite(t *testing.T) {
 	suite.Run(t, new(SudokuTestSuite))
+
 }
